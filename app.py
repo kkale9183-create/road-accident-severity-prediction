@@ -1,4 +1,4 @@
-# Correct app.py (Fix ValueError)
+# Final Correct app.py (Fix Feature Names Error)
 
 import streamlit as st
 import pandas as pd
@@ -16,19 +16,19 @@ st.dataframe(df.head())
 # Remove missing values
 df = df.dropna()
 
-# Convert all object columns into numeric
+# Convert object columns into numeric
 for column in df.columns:
     if df[column].dtype == "object":
         df[column] = df[column].astype("category").cat.codes
 
-# Target Column
+# Target column
 target_column = "Accident_Severity"
 
 # Features and Target
 X = df.drop(target_column, axis=1)
 y = df[target_column]
 
-# Extra safety: convert all columns to numeric
+# Convert all features to numeric
 X = X.apply(pd.to_numeric, errors="coerce")
 X = X.fillna(0)
 
@@ -42,18 +42,17 @@ model.fit(X, y)
 
 st.subheader("Enter Accident Details")
 
-# Use first 4 columns for input example
-feature_columns = X.columns[:4]
-
+# Create input for ALL feature columns
 input_values = []
 
-for col in feature_columns:
+for col in X.columns:
     value = st.number_input(f"Enter {col}", value=0)
     input_values.append(value)
 
+# Input dataframe with SAME columns as training data
 input_data = pd.DataFrame(
     [input_values],
-    columns=feature_columns
+    columns=X.columns
 )
 
 # Prediction
