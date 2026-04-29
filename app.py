@@ -1,4 +1,4 @@
-# FINAL WORKING app.py (Fix prediction error)
+# Final app.py using Dropdown (No Number Input)
 
 import streamlit as st
 import pandas as pd
@@ -13,25 +13,23 @@ df = pd.read_csv("indian_road_accident_severity_10000.csv")
 # Remove missing values
 df = df.dropna()
 
-# Convert all object columns into numeric codes
+# Convert object columns to category codes
 for column in df.columns:
     if df[column].dtype == "object":
         df[column] = df[column].astype("category").cat.codes
 
-# Target Column
+# Target column
 target_column = "Accident_Severity"
 
 # Features and Target
 X = df.drop(target_column, axis=1)
 y = df[target_column]
 
-# Convert ALL columns to numeric properly
-X = X.apply(pd.to_numeric, errors="coerce")
-X = X.fillna(0)
+# Convert to numeric
+X = X.apply(pd.to_numeric, errors="coerce").fillna(0)
 X = X.astype(float)
 
-y = pd.to_numeric(y, errors="coerce")
-y = y.fillna(0)
+y = pd.to_numeric(y, errors="coerce").fillna(0)
 
 # Train Model
 model = RandomForestClassifier(
@@ -43,16 +41,18 @@ model.fit(X, y)
 
 st.subheader("Enter Accident Details")
 
-# Create input fields for all columns
 input_values = []
 
+# Dropdown input instead of number input
 for col in X.columns:
-    value = st.number_input(
-        f"Enter {col}",
-        min_value=0.0,
-        value=0.0
+    unique_values = sorted(list(df[col].dropna().unique()))
+    
+    selected_value = st.selectbox(
+        f"Select {col}",
+        unique_values
     )
-    input_values.append(value)
+    
+    input_values.append(float(selected_value))
 
 # Create input dataframe
 input_data = pd.DataFrame(
@@ -60,10 +60,7 @@ input_data = pd.DataFrame(
     columns=X.columns
 )
 
-# Convert input to float
-input_data = input_data.astype(float)
-
-# Prediction Button
+# Prediction
 if st.button("Predict Severity"):
     prediction = model.predict(input_data)
     st.success(f"Predicted Accident Severity: {prediction[0]}")
