@@ -1,4 +1,4 @@
-# Final Clean Streamlit app.py Code
+# FINAL WORKING app.py (Fix prediction error)
 
 import streamlit as st
 import pandas as pd
@@ -13,7 +13,7 @@ df = pd.read_csv("indian_road_accident_severity_10000.csv")
 # Remove missing values
 df = df.dropna()
 
-# Convert text columns into numeric codes
+# Convert all object columns into numeric codes
 for column in df.columns:
     if df[column].dtype == "object":
         df[column] = df[column].astype("category").cat.codes
@@ -25,9 +25,13 @@ target_column = "Accident_Severity"
 X = df.drop(target_column, axis=1)
 y = df[target_column]
 
-# Convert all features to numeric
+# Convert ALL columns to numeric properly
 X = X.apply(pd.to_numeric, errors="coerce")
 X = X.fillna(0)
+X = X.astype(float)
+
+y = pd.to_numeric(y, errors="coerce")
+y = y.fillna(0)
 
 # Train Model
 model = RandomForestClassifier(
@@ -39,19 +43,25 @@ model.fit(X, y)
 
 st.subheader("Enter Accident Details")
 
-# Create dropdown input fields
+# Create input fields for all columns
 input_values = []
 
 for col in X.columns:
-    options = sorted(list(df[col].unique()))
-    selected_value = st.selectbox(f"Select {col}", options)
-    input_values.append(selected_value)
+    value = st.number_input(
+        f"Enter {col}",
+        min_value=0.0,
+        value=0.0
+    )
+    input_values.append(value)
 
 # Create input dataframe
 input_data = pd.DataFrame(
     [input_values],
     columns=X.columns
 )
+
+# Convert input to float
+input_data = input_data.astype(float)
 
 # Prediction Button
 if st.button("Predict Severity"):
